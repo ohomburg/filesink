@@ -1,0 +1,28 @@
+language: rust
+rust:
+  - stable
+matrix:
+  include:
+    - rust: stable
+      os: windows
+  allow_failures:
+    - rust: nightly
+  fast_finish: true
+cache: cargo
+before_script:
+  - rustup component add rustfmt
+script:
+  - cargo fmt --all -- --check
+  - cargo build --verbose --all
+before_deploy:
+  - cargo build --all --release
+deploy:
+  provider: releases
+  api_key:
+    secure: R0vQI/2V0kSnU6RCXuyEuNc3MNsPkOuggqJdK2iqaLCkjUPKUdUlAk21c3rGl9EQncvtCvCuShUm969ripB5RzdVkLeZJF7Tb8j45F/ZfkikCFPHa4BYGswdtxN6PT3b2zAv/kiNW/mtkQu5K22wPTY5P1KsYkoYopTSdly4k4zsScpCS5BqnIu4jPch3z7LsjHh40+HSGdJnhj7ndGs/s/g+ltJ5v4NGIA2M/zEorbQcFX0s4Tp6dtxNbVwp27C1AQWQbaeiE8kuwjNrLgY7GQ/SGfWVN8QY5xadHWWXJLVDZdxxPTdhLVOPmAspAd68YLdSrPkwxxmGjQ4zp+Bj1YHFtrvOvzUjKsO5q8yqjhPrMMEDBh24asQOvFFzCJUrp85XXldldo8XPYjSqafHVUM56XYgVWNvZsbwuTiLMadlYMIlaRub+qhmLlTmeY1eFYNk2zT90ZS8XMvGb/JrffHdYnt5DwhX5L8MJ00yylTT3Irt/jC+dubEcfE88ZgNj/FsjQ4uyV1F0DyKPy5mpzflmDmLFOKTFjXr9hxNlz6a2v2DfBK0OynaVfpdInwVd70vnVmfoBLoql4fULepTlwal1oC39raM0D6cyG5YYuXW9xwEDza4fcd9Goucjk1H5LPN/aPL6psnwQ1QVPj32d4MW1QzIsRA5exsvI378=
+  file: target/release/filesink
+  skip_cleanup: true
+  on:
+    tags: true
+    repo: ohomburg/colin
+    rust: stable
