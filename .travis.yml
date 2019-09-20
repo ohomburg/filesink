@@ -2,9 +2,6 @@ language: rust
 rust:
   - stable
 matrix:
-  include:
-    - rust: stable
-      os: windows
   allow_failures:
     - rust: nightly
   fast_finish: true
