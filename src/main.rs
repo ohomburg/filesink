@@ -16,10 +16,10 @@ struct Endpoint {
     target: Option<String>,
 }
 
-fn respond(status: u16) -> Response {
+fn respond(status: u16, msg: &'static str) -> Response {
     HResponse::builder()
         .status(status)
-        .body(Default::default())
+        .body(msg.into())
         .unwrap()
 }
 
@@ -29,23 +29,25 @@ fn file_sink(
     body: FullBody,
     config: &HashMap<String, Endpoint>,
 ) -> Result<Response, Response> {
-    let ep = config.get(&name).ok_or(respond(404))?;
+    let ep = config.get(&name).ok_or(respond(404, "Not Found"))?;
 
     if !constant_time_eq(ep.auth.as_bytes(), auth.as_bytes()) {
-        return Err(respond(401));
+        return Err(respond(401, "Unauthorized"));
     }
 
     let path = ep.target.as_ref().map(|s| &**s).unwrap_or(&name);
-    let mut file = File::create(path).map_err(|_| respond(500))?;
-    std::io::copy(&mut body.reader(), &mut file).map_err(|_| respond(500))?;
+    let mut file = File::create(path).map_err(|_| respond(500, "file creation failed"))?;
+    std::io::copy(&mut body.reader(), &mut file).map_err(|_| respond(500, "copy failed"))?;
 
+    println!("Received valid PUT for {}", name);
+    println!("Running {}", ep.cmd);
     let status = Command::new("sh")
         .arg("-c")
         .arg(&ep.cmd)
         .status()
-        .map_err(|_| respond(500))?;
+        .map_err(|_| respond(500, "command failed"))?;
     if status.success() {
-        Ok(respond(200))
+        Ok(respond(200, ""))
     } else {
         Err(HResponse::builder()
             .status(500)
