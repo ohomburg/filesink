@@ -36,8 +36,14 @@ fn file_sink(
     }
 
     let path = ep.target.as_ref().map(|s| &**s).unwrap_or(&name);
-    let mut file = File::create(path).map_err(|_| respond(500, "file creation failed"))?;
-    std::io::copy(&mut body.reader(), &mut file).map_err(|_| respond(500, "copy failed"))?;
+    let mut file = File::create(path).map_err(|e| {
+        eprintln!("File creation failed: {:?}", e);
+        respond(500, "file creation failed")
+    })?;
+    std::io::copy(&mut body.reader(), &mut file).map_err(|e| {
+        eprintln!("Copy failed: {:?}", e);
+        respond(500, "copy failed")
+    })?;
 
     println!("Received valid PUT for {}", name);
     println!("Running {}", ep.cmd);
